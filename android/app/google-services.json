@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "522650697503",
+    "project_id": "chity-chat-db-app",
+    "storage_bucket": "chity-chat-db-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:522650697503:android:791f54fafd22ff8980ba2a",
+        "android_client_info": {
+          "package_name": "com.example.chity"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBulkYJG3tv8O5XHKwM2KNzveo5TAkwZbQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
