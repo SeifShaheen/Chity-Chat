@@ -1,0 +1,125 @@
+plugins {
+    id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    // END: FlutterFire Configuration
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
+}
+
+android {
+    namespace = "com.example.chity"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId = "com.example.chity"
+        // You can update the following values to match your application needs.
+        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
+        minSdkVersion flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+// Task to generate google-services.json from .env
+task createFirebaseConfig {
+    def envFile = rootProject.file("../.env")
+    def gsFile = file("google-services.json")
+
+    doLast {
+        if (!envFile.exists()) {
+            throw new GradleException(".env file not found at ${envFile.absolutePath}. Please create one from .env.example.")
+        }
+
+        def envVars = [:]
+        envFile.eachLine { line ->
+            line = line.trim()
+            if (line && !line.startsWith('#') && line.contains('=')) {
+                def parts = line.split('=', 2)
+                envVars[parts[0].trim()] = parts[1].trim()
+            }
+        }
+
+        def json = """{
+  "project_info": {
+    "project_number": "${envVars['FIREBASE_MESSAGING_SENDER_ID']}",
+    "project_id": "${envVars['FIREBASE_PROJECT_ID']}",
+    "storage_bucket": "${envVars['FIREBASE_STORAGE_BUCKET']}"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "${envVars['FIREBASE_ANDROID_APP_ID']}",
+        "android_client_info": {
+          "package_name": "com.example.chity"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "${envVars['FIREBASE_ANDROID_API_KEY']}"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}"""
+        gsFile.text = json
+        println "Generated google-services.json from .env"
+    }
+}
+
+// Ensure google-services.json is generated before Google Services plugin processes it
+afterEvaluate {
+    tasks.matching { it.name.contains("GoogleServices") }.configureEach {
+        it.dependsOn createFirebaseConfig
+    }
+}
